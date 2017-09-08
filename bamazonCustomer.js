@@ -15,10 +15,10 @@ connection.connect(function(err, answer){
     var query = "SELECT item_id, product_name, price FROM products";
     connection.query(query, { item_id: answer.item_id }, function(err, res) {
         for (var i = 0; i < res.length; i++) {
-            console.log("Item ID: " + res[i].item_id + " || Product: " + res[i].product_name + " || Price: " + res[i].price);
+            console.log("Item ID: " + res[i].item_id + " || Product: " + res[i].product_name + " || Price: $" + res[i].price);
         }
         shop();
-    }); 
+    });
 });
 
 function shop() {
@@ -32,8 +32,11 @@ function shop() {
             }
             return false;
           }
+    },{
+
     }).then(function(answer){
-        console.log("congratulations");
+        console.log(answer);
+        console.log("congrats, you dit it")
     })
 }
 
