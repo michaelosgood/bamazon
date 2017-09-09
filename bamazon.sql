@@ -1,5 +1,5 @@
 -- Drops database if it exists
-DROP DATABASE IF EXISTS bamazaon_db;
+DROP DATABASE bamazaon_db;
 
 -- Creates database
 CREATE DATABASE bamazon_db;
@@ -17,7 +17,7 @@ CREATE TABLE products (
     item_id INTEGER NOT NULL AUTO_INCREMENT,
     product_name VARCHAR(50) NOT NULL,
     department_name VARCHAR(50) NOT NULL,
-    price INTEGER DEFAULT 0,
+    price DECIMAL(10, 2),
     stock_quantity INTEGER DEFAULT 0,
     PRIMARY KEY (item_id)
 );
