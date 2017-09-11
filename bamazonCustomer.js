@@ -12,56 +12,69 @@ var connection = mysql.createConnection({
 connection.connect(function(err, answer){
     if (err) throw err;
     console.log("Connected as ID: " + connection.threadId);
-    var query = "SELECT item_id, product_name, price FROM products";
-    connection.query(query, { item_id: answer.item_id }, function(err, res) {
-        for (var i = 0; i < res.length; i++) {
-            console.log("Item ID: " + res[i].item_id + " || Product: " + res[i].product_name + " || Price: $" + res[i].price);
-        }
-        shop();
-    });
-});
+    makeTable();
+})
 
-function shop() {
-    inquirer.prompt({
-        name: "item_id",
-        type: "input",
-        message: "What is the ID of the product you would like to purchase?",
-        validate: function(value){
-            if (isNaN(value)==false) {
-                return true;
-            }
-            else {
-                return false;
-            }
+var makeTable = function(){
+    connection.query("SELECT * FROM products", function(err,res){
+        for (var i=0;i<res.length;i++){
+            console.log(
+                res[i].item_id + " || PRODUCT: " + 
+                res[i].product_name  + " || DEPARTMENT: " + 
+                res[i].department_name + " || PRICE: $" + 
+                res[i].price + " || STOCK: " + 
+                res[i].stock_quantity + "\n"
+            );
         }
-    }).then(function(answer){
-        var id = parseFloat(answer.item_id);
-        console.log(id);
-        checkQuantity();
+    promptCustomer(res);
     })
 }
-
-
-function checkQuantity() {
-    inquirer.prompt({
-        name: "stock_quantity",
-        type: "input",
-        message: "How many would you like to purchase?",
-        validate: function(value){
-            if (isNaN(value)==false) {
-                return true;
-            }
-            else {
-                return false;
+var promptCustomer = function(res){
+    inquirer.prompt([{
+        type: 'input',
+        name: 'choice',
+        message: "What would you like to purchase? [Quit with Q]"
+    }]).then(function(answer){
+        var correct = false;
+        if(answer.choice.toUpperCase()=="Q"){
+            process.exit();
+        }
+        for(var i=0;i<res.length;i++){
+            if(res[i].product_name===answer.choice){ //verifies that choice is a product
+                correct=true;
+                var product=answer.choice; //variable to store answer
+                var id = i; //variable to store id of item
+                inquirer.prompt({
+                    type:"input",
+                    name: "quantity",
+                    message: "How many would you like to buy?",
+                    validate: function(value){
+                        if(isNaN(value)==false){
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                }).then(function(answer){
+                    if((res[id].stock_quantity-answer.quantity)>0){
+                        connection.query("UPDATE products SET stock_quantity='"+
+                        (res[id].stock_quantity-answer.quantity)
+                        +"'WHERE product_name='"+product+"'",function(err,res2){
+                            console.log("Product Purchased!");
+                            makeTable();
+                        })
+                    } 
+                    else {
+                        console.log("Not a valid selection!");
+                        promptCustomer(res);
+                    }
+                })
             }
         }
-     }).then(function(answer){
-        var quantity = parseFloat(answer.stock_quantity);
-        console.log(quantity);
-     })
+        if(i==res.length && correct==false){
+            console.log("Not a valid selection!");
+            promptCustomer(res);
+        }
+    })
 }
-
-// Still need to get application to verify id and quantity
-// Also need to verify that there is enough quantity left
-// Need to decrement stock_quantity when purchase is completed and update database
-// Need to notify shopper if there is not enough quantity
